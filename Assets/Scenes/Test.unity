@@ -392,6 +392,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27dec4616c9fd40abb51c724141015c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animator: {fileID: 335456155}
 --- !u!1001 &335456153
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -447,11 +448,20 @@ PrefabInstance:
       propertyPath: m_Name
       value: castle_guard_01
       objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 463acec62f1fd4474a6bd52496e50fc5, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 45a9098eec20642fd9c180391d3c1cab, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 463acec62f1fd4474a6bd52496e50fc5, type: 3}
 --- !u!4 &335456154 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 463acec62f1fd4474a6bd52496e50fc5, type: 3}
+  m_PrefabInstance: {fileID: 335456153}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &335456155 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 463acec62f1fd4474a6bd52496e50fc5, type: 3}
   m_PrefabInstance: {fileID: 335456153}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &439486591
