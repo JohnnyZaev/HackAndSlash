@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using ModelImporter = UnityEditor.ModelImporter;
 
 namespace Editor
 {
@@ -11,15 +12,15 @@ namespace Editor
 		private static readonly string ProcessorFolder = "Characters";
 		private static readonly string MaterialsFolder = "Materials";
 		private static readonly string TexturesFolder = "Textures";
-		private static string[] _textureTypes = new string[]
+		private static readonly string[] TextureTypes = 
 		{
 			"__diffuse",
 			"__normal",
-			"__specular",
+			"__specular"
 		};
 		private static Dictionary<string, Avatar> _avatarsPerModelFile =
 			new Dictionary<string, Avatar>();
-		private static int _incompleteAssets = 0;
+		private static int _incompleteAssets;
 
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
 		private static readonly int BumpMap = Shader.PropertyToID("_BumpMap");
@@ -32,7 +33,7 @@ namespace Editor
 
 		private static string _GetModelFilePath(string assetPath)
 		{
-			string[] assetPaths = Directory.GetFiles(Path.GetDirectoryName(assetPath));
+			string[] assetPaths = Directory.GetFiles(Path.GetDirectoryName(assetPath) ?? string.Empty);
 			foreach (string p in assetPaths)
 			{
 				if (Path.GetFileName(p).StartsWith("_"))
@@ -76,7 +77,7 @@ namespace Editor
 					{
 						avatar = (Avatar) AssetDatabase
 							.LoadAllAssetsAtPath(modelFilePath)
-							.First(x => x.GetType() == typeof(Avatar));
+							.First(x => x is Avatar);
 						_avatarsPerModelFile[modelFilePath] = avatar;
 					}
 
@@ -175,7 +176,7 @@ namespace Editor
 		
 		private static (string, string) _ParseTexturePath(string texPath)
 		{
-			foreach (var type in _textureTypes)
+			foreach (var type in TextureTypes)
 				if (texPath.Contains(type))
 				{
 					string materialName =
