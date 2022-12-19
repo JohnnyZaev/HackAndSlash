@@ -72,8 +72,7 @@ namespace Editor
 				string modelFilePath = _GetModelFilePath(assetPath);
 				if (modelFilePath != "")
 				{
-					Avatar avatar;
-					if (!_avatarsPerModelFile.TryGetValue(modelFilePath, out avatar))
+					if (!_avatarsPerModelFile.TryGetValue(modelFilePath, out var avatar))
 					{
 						avatar = (Avatar) AssetDatabase
 							.LoadAllAssetsAtPath(modelFilePath)
@@ -93,13 +92,12 @@ namespace Editor
 		private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets,
 			string[] movedFromAssetPaths)
 		{
-			string materialsRootPath = Path.Combine(
+			var materialsRootPath = Path.Combine(
 				"Assets", MaterialsFolder, ProcessorFolder);
-			string materialRefFolder, materialAssetDir;
 			foreach (string path in importedAssets)
 			{
-				materialRefFolder = GetCharacterFolder(path);
-				materialAssetDir = Path.Combine(materialsRootPath, materialRefFolder);
+				var materialRefFolder = GetCharacterFolder(path);
+				var materialAssetDir = Path.Combine(materialsRootPath, materialRefFolder);
 
 				if (ShouldProcessModel(path))
 				{
@@ -133,14 +131,13 @@ namespace Editor
 					Texture tex = AssetDatabase.LoadAssetAtPath<Texture>(path);
 					if (tex == null)
 					{
-						Debug.LogWarning($"Could not find texture '{path}'"
-						                 + "- no auto-linking of the texture");
+						Debug.LogWarning($"Could not find texture '{path}'- no auto-linking of the texture");
 						return;
 
 					}
 
 					(string materialName, string mapType) = _ParseTexturePath(path);
-					Material material = AssetDatabase.LoadAssetAtPath<Material>(
+					var material = AssetDatabase.LoadAssetAtPath<Material>(
 						Path.Combine(materialAssetDir, $"{materialName}.mat"));
 					if (material == null)
 					{
@@ -148,15 +145,21 @@ namespace Editor
 						return;
 					}
 
-					if (mapType == "__diffuse")
-						material.SetTexture(MainTex, tex);
-					else if (mapType == "__normal")
-						material.SetTexture(BumpMap, tex);
-					else if (mapType == "__specular")
-						material.SetTexture(MetallicGlossMap, tex);
+					switch (mapType)
+					{
+						case "__diffuse":
+							material.SetTexture(MainTex, tex);
+							break;
+						case "__normal":
+							material.SetTexture(BumpMap, tex);
+							break;
+						case "__specular":
+							material.SetTexture(MetallicGlossMap, tex);
+							break;
+					}
 				}
 			}
-			int n = _incompleteAssets;
+			var n = _incompleteAssets;
 			_incompleteAssets = 0;
 			if (n > 0)
 				AssetDatabase.ForceReserializeAssets();
@@ -179,7 +182,7 @@ namespace Editor
 			foreach (var type in TextureTypes)
 				if (texPath.Contains(type))
 				{
-					string materialName =
+					var materialName =
 						Path.GetFileNameWithoutExtension(texPath.Replace(type, ""));
 					return (materialName, type);
 				}
