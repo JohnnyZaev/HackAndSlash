@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using ModelImporter = UnityEditor.ModelImporter;
+using Object = UnityEngine.Object;
 
 namespace Editor
 {
@@ -18,7 +19,7 @@ namespace Editor
 			"__normal",
 			"__specular"
 		};
-		private static Dictionary<string, Avatar> _avatarsPerModelFile =
+		private static readonly Dictionary<string, Avatar> AvatarsPerModelFile =
 			new Dictionary<string, Avatar>();
 		private static int _incompleteAssets;
 
@@ -72,12 +73,12 @@ namespace Editor
 				string modelFilePath = _GetModelFilePath(assetPath);
 				if (modelFilePath != "")
 				{
-					if (!_avatarsPerModelFile.TryGetValue(modelFilePath, out var avatar))
+					if (!AvatarsPerModelFile.TryGetValue(modelFilePath, out var avatar))
 					{
 						avatar = (Avatar) AssetDatabase
 							.LoadAllAssetsAtPath(modelFilePath)
 							.First(x => x is Avatar);
-						_avatarsPerModelFile[modelFilePath] = avatar;
+						AvatarsPerModelFile[modelFilePath] = avatar;
 					}
 
 					if (avatar != null)
@@ -109,12 +110,11 @@ namespace Editor
 					IEnumerable<Object> materials = AssetDatabase
 						.LoadAllAssetsAtPath(path)
 						.Where(x => x.GetType() == typeof(Material));
-					string materialAssetPath, error;
 					foreach (Object material in materials)
 					{
-						materialAssetPath = Path.Combine(
+						var materialAssetPath = Path.Combine(
 							materialAssetDir, $"{material.name}.mat");
-						error = AssetDatabase.ExtractAsset(material, materialAssetPath);
+						var error = AssetDatabase.ExtractAsset(material, materialAssetPath);
 						if (error != "")
 							Debug.LogWarning(
 								$"Could not extract material '{material.name}': {error}",
@@ -188,6 +188,25 @@ namespace Editor
 				}
 
 			return ("", "Unknown");
+		}
+
+		private void OnPreprocessAnimation()
+		{
+			if (!ShouldProcessModel(assetPath))
+				return;
+
+			var f = Path.GetFileNameWithoutExtension(assetPath);
+			var modelImporter = assetImporter as ModelImporter;
+			var animations = modelImporter!.defaultClipAnimations;
+			if (animations == null || animations.Length <= 0) return;
+			foreach (var animation in animations)
+			{
+				animation.name = f.EndsWith("@") ? f.Substring(0, f.Length - 1) : f;
+				if (f.EndsWith("@"))
+					animation.loopTime = true;
+			}
+
+			modelImporter.clipAnimations = animations;
 		}
 	}
 }
