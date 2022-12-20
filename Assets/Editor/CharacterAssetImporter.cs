@@ -10,9 +10,10 @@ namespace Editor
 {
 	public class CharacterAssetImporter : AssetPostprocessor
 	{
-		private static readonly string ProcessorFolder = "Characters";
-		private static readonly string MaterialsFolder = "Materials";
-		private static readonly string TexturesFolder = "Textures";
+		private const string ProcessorFolder = "Characters";
+		private const string MaterialsFolder = "Materials";
+		private const string TexturesFolder = "Textures";
+
 		private static readonly string[] TextureTypes = 
 		{
 			"__diffuse",
@@ -20,7 +21,7 @@ namespace Editor
 			"__specular"
 		};
 		private static readonly Dictionary<string, Avatar> AvatarsPerModelFile =
-			new Dictionary<string, Avatar>();
+			new ();
 		private static int _incompleteAssets;
 
 		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
@@ -34,8 +35,8 @@ namespace Editor
 
 		private static string _GetModelFilePath(string assetPath)
 		{
-			string[] assetPaths = Directory.GetFiles(Path.GetDirectoryName(assetPath) ?? string.Empty);
-			foreach (string p in assetPaths)
+			var assetPaths = Directory.GetFiles(Path.GetDirectoryName(assetPath) ?? string.Empty);
+			foreach (var p in assetPaths)
 			{
 				if (Path.GetFileName(p).StartsWith("_"))
 					return p;
@@ -53,7 +54,7 @@ namespace Editor
 			if (!ShouldProcessModel(assetPath))
 				return;
 
-			ModelImporter modelImporter = assetImporter as ModelImporter;
+			var modelImporter = assetImporter as ModelImporter;
 			modelImporter!.bakeAxisConversion = true;
 
 			if (Path.GetFileName(assetPath).StartsWith("_"))
@@ -67,10 +68,7 @@ namespace Editor
 			else
 			{
 				modelImporter.avatarSetup = ModelImporterAvatarSetup.CopyFromOther;
-				// find matching "model file" (in same folder) and try to get
-				// the associated avatar (using a cache dictionary to avoid
-				// reloading the avatar again and again)
-				string modelFilePath = _GetModelFilePath(assetPath);
+				var modelFilePath = _GetModelFilePath(assetPath);
 				if (modelFilePath != "")
 				{
 					if (!AvatarsPerModelFile.TryGetValue(modelFilePath, out var avatar))
@@ -95,7 +93,7 @@ namespace Editor
 		{
 			var materialsRootPath = Path.Combine(
 				"Assets", MaterialsFolder, ProcessorFolder);
-			foreach (string path in importedAssets)
+			foreach (var path in importedAssets)
 			{
 				var materialRefFolder = GetCharacterFolder(path);
 				var materialAssetDir = Path.Combine(materialsRootPath, materialRefFolder);
@@ -110,7 +108,7 @@ namespace Editor
 					IEnumerable<Object> materials = AssetDatabase
 						.LoadAllAssetsAtPath(path)
 						.Where(x => x.GetType() == typeof(Material));
-					foreach (Object material in materials)
+					foreach (var material in materials)
 					{
 						var materialAssetPath = Path.Combine(
 							materialAssetDir, $"{material.name}.mat");
@@ -128,7 +126,7 @@ namespace Editor
 				}
 				else if (_IsTexture(path) && _ShouldProcessTexture(path))
 				{
-					Texture tex = AssetDatabase.LoadAssetAtPath<Texture>(path);
+					var tex = AssetDatabase.LoadAssetAtPath<Texture>(path);
 					if (tex == null)
 					{
 						Debug.LogWarning($"Could not find texture '{path}'- no auto-linking of the texture");
@@ -136,7 +134,7 @@ namespace Editor
 
 					}
 
-					(string materialName, string mapType) = _ParseTexturePath(path);
+					var (materialName, mapType) = _ParseTexturePath(path);
 					var material = AssetDatabase.LoadAssetAtPath<Material>(
 						Path.Combine(materialAssetDir, $"{materialName}.mat"));
 					if (material == null)
@@ -173,7 +171,6 @@ namespace Editor
 
 		private static bool _ShouldProcessTexture(string assetPath)
 		{
-			// only process the files in: "<_TEXTURES_FOLDER>/<_PROCESSOR_FOLDER>"
 			return assetPath.Contains(Path.Combine(TexturesFolder, ProcessorFolder));
 		}
 		
@@ -198,7 +195,7 @@ namespace Editor
 			var f = Path.GetFileNameWithoutExtension(assetPath);
 			var modelImporter = assetImporter as ModelImporter;
 			var animations = modelImporter!.defaultClipAnimations;
-			if (animations == null || animations.Length <= 0) return;
+			if (animations is not {Length: > 0}) return;
 			foreach (var animation in animations)
 			{
 				animation.name = f.EndsWith("@") ? f.Substring(0, f.Length - 1) : f;
