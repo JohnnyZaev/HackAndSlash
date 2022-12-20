@@ -53,7 +53,7 @@ namespace Editor
 				return;
 
 			ModelImporter modelImporter = assetImporter as ModelImporter;
-			modelImporter.bakeAxisConversion = true;
+			modelImporter!.bakeAxisConversion = true;
 
 			if (Path.GetFileName(assetPath).StartsWith("_"))
 			{
